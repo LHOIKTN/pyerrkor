@@ -47,6 +47,8 @@ def get_kor_error_info(exc_type, exc_value):
 
     handler = handler_sets.get(source, {}).get(err_name)
     if handler:
+        # 디버깅: 핸들러 호출 횟수 확인
+        print(f"DEBUG: 핸들러 호출됨 - {err_name} ({source})")
         return handler(exc_type, exc_value)
 
     return ("아직 한글화되지 않은 에러", str(exc_value))

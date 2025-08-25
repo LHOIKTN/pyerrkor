@@ -4,6 +4,9 @@ import re
 
 def format_syntax_location(exc_value):
     if not hasattr(exc_value, "text") or exc_value.text is None:
+        # ast.parse()로 생성된 SyntaxError의 경우
+        if hasattr(exc_value, "lineno") and hasattr(exc_value, "offset"):
+            return f"문제의 줄 (Line {exc_value.lineno}):\n에러 위치: {exc_value.offset}번째 문자"
         return ""
 
     line = exc_value.text.rstrip("\n")
@@ -20,6 +23,11 @@ def syntax_error_handler(exc_type, exc_value):
     msg = str(exc_value)
 
     patterns = [
+        (
+            r"expected ':'",
+            "콜론 누락",
+            lambda m: "콜론(:)이 필요합니다.\nfor, if, while, def, class 등의 문장 끝에는 콜론을 붙여야 합니다.",
+        ),
         (
             r"invalid syntax",
             "문법 오류",
