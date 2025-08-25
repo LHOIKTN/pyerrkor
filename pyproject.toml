@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sibd_pyerr"
-version = "0.1.2"
+version = "0.1.3"
 description = "선일빅데이터고등학교 파이썬 에러 한글화"
 authors = [
     { name = "김동철", email = "lhoiktn@gmail.com" }
@@ -12,7 +12,19 @@ authors = [
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
-dependencies = []
+dependencies = [
+    "ipython>=7.0.0"
+]
+
+[project.scripts]
+sibd-py = "sibd_pyerr.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "black>=21.0",
+    "flake8>=3.8"
+]
 
 [tool.setuptools]
 package-dir = { "" = "." }

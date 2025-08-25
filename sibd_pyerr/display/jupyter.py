@@ -1,6 +1,7 @@
-from IPython.display import display, HTML
-
-
 def display_jupyter_error(name, message):
-    # display(HTML(f'<span style="color:magenta;">{name}</span>: {message}'))
-    display(HTML(f'<span style="color:red;">{name}</span>: {message}'))
+    try:
+        from IPython.display import display, HTML
+        display(HTML(f'<span style="color:red;">{name}</span>: {message}'))
+    except ImportError:
+        # IPython이 없는 경우 일반 print 사용
+        print(f"{name}: {message}")

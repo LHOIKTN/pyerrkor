@@ -1,4 +1,4 @@
-from sibd_pyerr.registry import register
+from sibd_pyerr.registry import register, format_error_location
 import traceback
 import re
 
@@ -68,19 +68,32 @@ def _handle_type_error(exc_type, exc_value):
             continue
         m = re.search(p["pattern"], msg)
         if m:
-            return kor_err_name, p["message"](m)
+            message = p["message"](m)
+            # 위치 정보 추가
+            location = format_error_location(exc_value)
+            if location:
+                message += f"\n\n{location}"
+            return kor_err_name, message
 
     # 특수 case: not callable → traceback 사용
     if "object is not callable" in msg:
         tb = traceback.extract_tb(exc_value.__traceback__)
         code_lines = [frame.line for frame in tb if frame.line]
         if any("print" in line for line in code_lines):
-            return kor_err_name, (
-                "print 함수를 덮어썼습니다. 커널을 재시작하거나 del print 후 다시 시도하세요."
-            )
-        return (
-            kor_err_name,
-            "함수가 아닌 값을 호출하려 했습니다.",
-        )
+            message = "print 함수를 덮어썼습니다. 커널을 재시작하거나 del print 후 다시 시도하세요."
+        else:
+            message = "함수가 아닌 값을 호출하려 했습니다."
+        
+        # 위치 정보 추가
+        location = format_error_location(exc_value)
+        if location:
+            message += f"\n\n{location}"
+        return kor_err_name, message
 
-    return kor_err_name, "자료형이 맞지 않아 연산할 수 없습니다."
+    # 기본 메시지
+    message = "자료형이 맞지 않아 연산할 수 없습니다."
+    # 위치 정보 추가
+    location = format_error_location(exc_value)
+    if location:
+        message += f"\n\n{location}"
+    return kor_err_name, message
