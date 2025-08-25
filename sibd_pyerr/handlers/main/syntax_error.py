@@ -3,15 +3,30 @@ import re
 
 
 def format_syntax_location(exc_value):
+    """SyntaxError의 위치 정보를 포맷팅합니다."""
     if not hasattr(exc_value, "text") or exc_value.text is None:
         return ""
 
-    line = exc_value.text.rstrip("\n")
+    lines = exc_value.text.split('\n')
     lineno = exc_value.lineno
     offset = exc_value.offset
 
-    pointer = " " * (offset - 1) + "^" if offset else ""
-    return f"문제의 줄 (Line {lineno}):\n{line}\n{pointer}"
+    # 파일명 정보 추가
+    filename = getattr(exc_value, 'filename', '<unknown>')
+    if filename == '<unknown>':
+        filename = '현재 파일'
+    elif '/' in filename:
+        filename = filename.split('/')[-1]  # 파일명만 표시
+    
+    # 문제가 있는 줄만 표시
+    if 1 <= lineno <= len(lines):
+        problem_line = lines[lineno - 1]
+        # 포인터 생성 (에러 위치 표시)
+        pointer = " " * (offset - 1) + "^" if offset else ""
+        
+        return f"📍 파일: {filename}\n📍 줄 번호: {lineno}\n📍 문제의 줄:\n{problem_line}\n{pointer}"
+    
+    return f"📍 파일: {filename}\n📍 줄 번호: {lineno}"
 
 
 @register("SyntaxError")
@@ -65,7 +80,14 @@ def syntax_error_handler(exc_type, exc_value):
     for pattern, summary, explain in patterns:
         if re.search(pattern, msg):
             location = format_syntax_location(exc_value)
-            return kor_err_name, f"{ explain(None)}\n\n{location}"
+            return kor_err_name, f"{explain(None)}\n\n{location}"
+
+    # 패턴 매칭이 안 된 경우에도 위치 정보는 표시
+    location = format_syntax_location(exc_value)
+    if location:
+        return kor_err_name, f"파이썬 문법에 맞지 않는 코드가 있습니다.\n구문을 다시 점검해보세요.\n\n{location}"
+    
+    return kor_err_name, "파이썬 문법에 맞지 않는 코드가 있습니다.\n구문을 다시 점검해보세요."
 
     return (
         kor_err_name,

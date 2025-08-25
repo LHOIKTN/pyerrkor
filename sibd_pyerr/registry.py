@@ -3,6 +3,29 @@ pandas_handlers: dict[str, callable] = {}
 numpy_handlers: dict[str, callable] = {}
 
 
+def format_error_location(exc_value):
+    """에러 발생 위치 정보를 포맷팅합니다."""
+    try:
+        tb = exc_value.__traceback__
+        if tb:
+            # 가장 최근 프레임 (에러 발생 위치)
+            frame = tb.tb_frame
+            filename = frame.f_code.co_filename
+            lineno = tb.tb_lineno
+            function = frame.f_code.co_name
+            
+            # 파일명 정리
+            if filename == '<stdin>':
+                filename = '대화형 모드'
+            elif filename.endswith('.py'):
+                filename = filename.split('/')[-1]  # 파일명만 표시
+            
+            return f"📍 파일: {filename}\n📍 줄 번호: {lineno}\n📍 함수: {function}"
+    except:
+        pass
+    return ""
+
+
 def register(error_name: str, source="builtin"):
     def decorator(fn: callable):
         if source == "pandas":
